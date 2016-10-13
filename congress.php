@@ -124,13 +124,21 @@ fieldset {
     if (isset($_POST["submit"])) { 
         $db = $_POST["database"];
         $cb = $_POST["chamber"];
-        $kwn = $_POST["keywordName"];
         echo '<script type="text/javascript">keywordSelect()</script>';
-        $kw = $_POST["keyword"];
         $apikey = "apikey=c8e8d23822424300b4043bb3ad752f57";
-        $chamber = "chamber=" . $_POST["chamber"];
-        $keyword = $_POST["keywordName"] . "=" . $_POST["keyword"];
-        $database = $_POST["database"];
+        $database = strtolower($_POST["database"]);
+        $chamber = "chamber=" . strtolower($_POST["chamber"]);
+        $keywordName = null;
+        if ($database == "legislators") {
+            $keywordName = "state";
+        } else if ($database == "committees") {
+            $keywordName = "committee_id";
+        } else if ($database == "bills") {
+            $keywordName = "bill_id";
+        } else if ($database == "amendments") {
+            $keywordName = "amendment_id";
+        }
+        $keyword = $keywordName . "=" . $_POST["keyword"];
         $url = "http://congress.api.sunlightfoundation.com/";
         $opts = array(
             'https'=>array(
@@ -141,7 +149,8 @@ fieldset {
         $context = stream_context_create($opts);
         $filePath = $url . $database . "?" . $chamber . "&" . $keyword . "&" . $apikey;
         $file = file_get_contents($filePath, false, $context);
-        echo "<p> $filePath </p>";
+        echo $file;
+        echo $filePath;
         $_POST["submit"] = null;
     }
 ?>
