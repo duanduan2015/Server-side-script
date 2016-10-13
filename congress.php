@@ -79,6 +79,11 @@ fieldset {
     border: 2px groove;
     width: 300px;
 }
+.border {
+    border: 2px solid black;
+    border-collapse: collapse;
+    text-align: center;
+}
 </style>
 </head>
 <body>
@@ -129,8 +134,66 @@ fieldset {
         $database = strtolower($_POST["database"]);
         $chamber = "chamber=" . strtolower($_POST["chamber"]);
         $keywordName = null;
+        $keyword = $_POST["keyword"];
         if ($database == "legislators") {
             $keywordName = "state";
+            $states = array(
+                "Alabama"=>"AL",
+                "Alaska"=>"AK",
+                "Arizona"=>"AZ",
+                "Arkansas"=>"AR",
+                "California"=>"CA",
+                "Colorado"=>"CO",
+                "Connecticut"=>"CT",
+                "Delaware"=>"DE",
+                "Florida"=>"FL",
+                "Georgia"=>"GA",
+                "Hawaii"=>"HI",
+                "Idaho"=>"ID",
+                "Illinois"=>"IL",
+                "Indiana"=>"IN",
+                "Iowa"=>"IA",
+                "Kansas"=>"KS",
+                "Kentucky"=>"KY",
+                "Louisiana"=>"LA",
+                "Maine"=>"ME",
+                "Maryland"=>"MD",
+                "Massachusetts"=>"MA",
+                "Michigan"=>"MI",
+                "Minnesota"=>"MN",
+                "Mississippi"=>"MS",
+                "Missouri"=>"MO",
+                "Montana"=>"MT",
+                "Nebraska"=>"NE",
+                "Nevada"=>"NV",
+                "New Hampshire"=>"NH",
+                "New Jersey"=>"NJ",
+                "New Mexico"=>"NM",
+                "New York"=>"NY",
+                "North Carolina"=>"NC",
+                "North Dakota"=>"ND",
+                "Ohio"=>"OH",
+                "Oklahoma"=>"OK",
+                "Oregon"=>"OR",
+                "Pennsylvania"=>"PA",
+                "Rhode Island"=>"RI",
+                "South Carolina"=>"SC",
+                "South Dakota"=>"SD",
+                "Tennessee"=>"TN",
+                "Texas"=>"TX",
+                "Utah"=>"UT",
+                "Vermont"=>"VT",
+                "Virginia"=>"VA",
+                "Washington"=>"WA",
+                "West Virginia"=>"WV",
+                "Wisconsin"=>"WI",
+                "Wyoming"=>"WY",
+            );
+            $keyword = $states[$keyword];
+            if ($keyword == null) {
+                $keyword = $_POST["keyword"];
+                $keywordName = "query";
+            }
         } else if ($database == "committees") {
             $keywordName = "committee_id";
         } else if ($database == "bills") {
@@ -138,7 +201,7 @@ fieldset {
         } else if ($database == "amendments") {
             $keywordName = "amendment_id";
         }
-        $keyword = $keywordName . "=" . $_POST["keyword"];
+        $keyword = $keywordName . "=" . $keyword;
         $url = "http://congress.api.sunlightfoundation.com/";
         $opts = array(
             'https'=>array(
@@ -149,8 +212,21 @@ fieldset {
         $context = stream_context_create($opts);
         $filePath = $url . $database . "?" . $chamber . "&" . $keyword . "&" . $apikey;
         $file = file_get_contents($filePath, false, $context);
-        echo $file;
-        echo $filePath;
+        //echo $filePath;
+        $decode = json_decode($file, true);
+        if ($decode["count"] == 0) {
+            $message = "The API returned zero results for the request.";
+            echo '<h2 align="center">' . $message . '</h2>';
+        }
+        $results = $decode["results"];
+        $table = '<table class="border" align="center" width="70%"><tr class="border"><th>Name</th><th class="border">State</th><th class="border">Chamber</th><th class="border">Details</th></tr>';
+        for ($i = 0; $i < $decode["count"]; $i++) {
+            $newRow = '<tr class="border"><td  class="border">'.$results[$i]["first_name"] . ' ' . $results[$i]["last_name"] . '</td><td class="border">' . $results[$i]["state_name"] . '</td><td  class="border">' . $results[$i]["chamber"] . '</td></tr>';
+            $table = $table. $newRow;
+        }
+        $table = $table . '</table>';
+        echo $table;
+        var_dump($decode["count"]);
         $_POST["submit"] = null;
     }
 ?>
