@@ -1,3 +1,11 @@
+<html>
+<?php
+    $db = $_POST["database"];
+    $cb = $_POST["chamber"];
+    $kwn = $_POST["keywordName"];
+    $kw = $_POST["keyword"];
+?>
+<head>
 <script>
     function keywordSelect() {
         var database = document.getElementById("database");
@@ -34,7 +42,7 @@
         if (senate.checked == false && house.checked == false) {
             missing.push("Chamber");
         }
-        var keyword = document.getElementById("keyword").textContent;
+        var keyword = document.getElementById("keyword").value;
         if (keyword.length == 0) {
             if (index == 0) {
                 missing.push("Keyword");
@@ -72,6 +80,8 @@ fieldset {
     width: 300px;
 }
 </style>
+</head>
+<body>
 <h1 align="center">Congress Information Search</h1>
 <form align="center" action="" method="POST" onsubmit="return checkForm()">
 <fieldset>
@@ -79,44 +89,61 @@ fieldset {
 <tr>
 <td align="center">Congress Database</td>
 <td align="center">
-<select id="database" onclick="keywordSelect()">
-<option value="default">Select your option</option>
-<option value="legislators">Legislators</option>
-<option value="committees">Committees</option>
-<option value="bills">Bills</option>
-<option value="amendments">Amendments</option>
+<select name="database" id="database" onclick="keywordSelect()">
+<option value="default" <?php if($db != null && $db == "default") echo "selected";?>>Select your option</option>
+<option value="legislators" <?php if($db != null && $db == "legislators") echo "selected";?>>Legislators</option>
+<option value="committees" <?php if($db != null && $db == "committees") echo "selected";?>>Committees</option>
+<option value="bills" <?php if($db != null && $db == "bills") echo "selected";?>>Bills</option>
+<option value="amendments" <?php if($db != null && $db == "amendments") echo "selected";?>>Amendments</option>
 </select></td></tr>
 <tr>
 <td align="center">Chamber</td>
 <td align="center">
-<input id="senate" type="radio" name="chamber" value="Senate">Senate</input>
-<input id="house" type="radio" name="chamber" value="House">House</input>
+<input id="senate" type="radio" name="chamber" value="Senate" <?php if($cb != null && $cb == "Senate") echo "checked";?>>Senate</input>
+<input id="house" type="radio" name="chamber" value="House" <?php if($cb != null && $cb == "House") echo "checked";?>>House</input>
 </td></tr>
 <tr>
-<td id="keywordName" align="center">Keyword*</td>
-<td align="center"><input id="keyword" type="text" name="keyword" value=""></td></tr>
+<td id="keywordName" align="center" name="keywordName">Keyword*</td>
+<td align="center"><input id="keyword" type="text" name="keyword" value="<?php if($kw != null) echo $kw;?>"></td></tr>
 <tr>
 <td></td>
 <td>
-<input type="submit" name="search" value="search">
+<input type="submit" name="submit" value="Search">
 <button type="button" name="clear" onclick="clearForm()")>Clear</button>
+</td>
+</tr>
+<tr>
+<td align="center" colspan="2">
+<a href="http://sunlightfoundation.com" text-align="center">Powered by Sunlight Foundation</a>
 </td>
 </tr>
 </table>
 </fieldset>
 </form>
-<?php
-//Create a stream
-    $opts = array(
-        'https'=>array(
-            'method'=>"GET",
-            'header'=>"Accept-language: en\r\n"
-        )
-    );
-
-    $context = stream_context_create($opts);
-
-// Open the file using the HTTP headers set above
-    $file = file_get_contents('http://congress.api.sunlightfoundation.com/legislators?chamber=house&state=WA&apikey=c8e8d23822424300b4043bb3ad752f57', false, $context);
-    //echo $file;
+<?php 
+    if (isset($_POST["submit"])) { 
+        $db = $_POST["database"];
+        $cb = $_POST["chamber"];
+        $kwn = $_POST["keywordName"];
+        echo '<script type="text/javascript">keywordSelect()</script>';
+        $kw = $_POST["keyword"];
+        $apikey = "apikey=c8e8d23822424300b4043bb3ad752f57";
+        $chamber = "chamber=" . $_POST["chamber"];
+        $keyword = $_POST["keywordName"] . "=" . $_POST["keyword"];
+        $database = $_POST["database"];
+        $url = "http://congress.api.sunlightfoundation.com/";
+        $opts = array(
+            'https'=>array(
+                'method'=>"GET",
+                'header'=>"Accept-language: en\r\n"
+            )
+        );
+        $context = stream_context_create($opts);
+        $filePath = $url . $database . "?" . $chamber . "&" . $keyword . "&" . $apikey;
+        $file = file_get_contents($filePath, false, $context);
+        echo "<p> $filePath </p>";
+        $_POST["submit"] = null;
+    }
 ?>
+</body>
+<html>
