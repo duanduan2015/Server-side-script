@@ -30,6 +30,10 @@
         }
     }
     function clearForm() {
+        var display = document.getElementById("display");
+        while (display.firstChild) {
+                display.removeChild(display.firstChild);
+        }
         document.getElementById("database").selectedIndex = 0;
         document.getElementById("senate").checked = false;
         document.getElementById("house").checked = false;
@@ -125,7 +129,7 @@ fieldset {
 </tr>
 <tr>
 <td align="center" colspan="2">
-<a href="http://sunlightfoundation.com" text-align="center">Powered by Sunlight Foundation</a>
+<a href="http://sunlightfoundation.com" text-align="center" target="_blank">Powered by Sunlight Foundation</a>
 </td>
 </tr>
 </table>
@@ -180,7 +184,8 @@ fieldset {
             $link = $url . $database . "?" . $chamber . "&" . $keyword . "&" . $id . "&" . $apikey;
             $details = file_get_contents($link, false, $context);
             $detailsDecode = json_decode($details, true);
-            $GLOBALS[$i] = '<table class="border" width="70%" align="center"><tr><td>Name</td><td>Gender</td></tr></table>';
+            $GLOBALS[$i] = getDetailsTable($detailsDecode);
+            //$GLOBALS[$i] = '<table class="border" width="70%" align="center"><tr><td>Name</td><td>Gender</td></tr></table>';
             $detailsTable = '<div id="details' . $i . '" style="display:none;">' . $GLOBALS[$i] . '</div>';
             echo $detailsTable;
             $detailsLink = '<a href="javascript:displayDetails(' . $i . ');">View Details</a>';
@@ -189,11 +194,21 @@ fieldset {
         }
         $table = $table . '</table></div>';
         echo $table;
-        var_dump($decode["count"]);
+        //var_dump($decode["count"]);
         $_POST["submit"] = null;
     }
     function getDetailsTable($decode) {
-        $table = '<table class="border" width="70%" align="center"><tr><td>Name</td><td>Gender</td></tr></table>';
+        //var_dump($decode["results"]);
+        $results = $decode["results"][0];
+        $head = '<table class="border" width="70%" align="center">';
+        $img = '<tr><td  align="center"colspan="2"><img style="padding-top:20px; padding-bottom:20px;" align="center" src="https://theunitedstates.io/images/congress/225x275/' . $results["bioguide_id"]. '.jpg"></td></tr>';
+        $name = '<tr><td align="left" style="padding-left:250px;">Full Name</td><td align="left">' . $results["first_name"] . ' ' . $results["last_name"] . '</td></tr>';
+        $term = '<tr><td align="left" style="padding-left:250px;">Term Ends On</td><td align="left" >' . $results["term_end"] . '</td></tr>';
+        $website = '<tr><td align="left" style="padding-left:250px;">Website</td><td align="left" ><a target="_blank" href="' . $results["website"] . '">' . $results["website"] . '</a></td></tr>';
+        $office = '<tr><td align="left" style="padding-left:250px;">Office</td><td align="left" >' . $results["office"]. '</td></tr>';
+        $facebook = '<tr><td align="left" style="padding-left:250px;">Facebook</td><td align="left" ><a target="_blank" href="https://www.facebook.com/' . $results["facebook_id"] . '">' . $results["first_name"] . ' ' . $results["last_name"]. '</a></td><tr>';
+        $twitter = '<tr><td align="left" style="padding-bottom:20px;padding-left:250px;">Twitter</td><td style="padding-bottom:20px;" align="left" ><a target="_blank" href="https://twitter.com/' . $results["twitter_id"] . '">' . $results["first_name"] . ' ' . $results["last_name"]. '</a></td><tr>';
+        $table = $head . $img . $name . $term . $website . $office . $facebook . $twitter . '</table>';
         return $table;
     }
     function getStatesTable() {
