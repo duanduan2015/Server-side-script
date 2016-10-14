@@ -13,6 +13,12 @@
         var details = document.getElementById(id);
         display.innerHTML = details.innerHTML;
     }
+    function displayBills(index) {
+        var display = document.getElementById("display");
+        var id = "bills".concat(index.toString());
+        var details = document.getElementById(id);
+        display.innerHTML = details.innerHTML;
+    }
     function keywordSelect() {
         var database = document.getElementById("database");
         var checked = database.selectedIndex;
@@ -39,6 +45,7 @@
         document.getElementById("house").checked = false;
         document.getElementById("keywordName").innerHTML = "Keyword*";
         document.getElementById("keyword").value = "";
+        //clear dynamic generated divs
     }
     function checkForm() {
         var db = document.getElementById("database");
@@ -171,15 +178,78 @@ fieldset {
         $context = stream_context_create($opts);
         $filePath = $url . $database . "?" . $chamber . "&" . $keyword . "&" . $apikey;
         $file = file_get_contents($filePath, false, $context);
-        //echo $filePath;
         $decode = json_decode($file, true);
         if ($decode["count"] == 0) {
             $message = "The API returned zero results for the request.";
-            echo '<h2 align="center">' . $message . '</h2>';
+            echo '<div id="display" align="center"><h2>' . $message . '</h2></div>';
+        } else {
+            $results = $decode["results"];
+            $table = null;
+            if ($database == "legislators") {
+                $table = getLesgislatorsTable($results, $keyword, count($decode), $contex); 
+            } else if ($database == "committees") {
+                $table = getCommitteesTable($results, $keyword, count($decode), $contex);
+            } else if ($database == "bills") {
+                $table = getBillsTable($results, $keyword, count($decode), $contex);
+            }
+            echo $table;
         }
-        $results = $decode["results"];
+        $_POST["submit"] = null;
+    }
+    function getBillsTable($results, $keyword, $length, $contex) {
+        $chamber = "chamber=" . strtolower($_POST["chamber"]);
+        $apikey = "apikey=c8e8d23822424300b4043bb3ad752f57";
+        $url = "http://congress.api.sunlightfoundation.com/";
+        $database = "bills";
+        $table = '<div id="display"><table class="border" align="center" width="70%"><tr class="border"><th>Bill ID</th><th class="border">Short Title</th><th class="border">Chamber</th><th class="border">Details</th></tr>';
+        for ($i = 0; $i < $length; $i++) {
+            if (count($results[$i]) == 0) {
+                break;
+            }
+            $detailsLink = '<a href="javascript:displayBills(' . $i . ');">View Details</a>';
+            $GLOBALS[$i] = getBillsDetails($results[$i]);
+            $detailsTable = '<div id="bills' . $i . '" style="display:none;">' . $GLOBALS[$i] . '</div>';
+            echo $detailsTable;
+            $newRow = '<tr class="border"><td class="border">'.$results[$i]["bill_id"] . '</td><td class="border">' . $results[$i]["short_title"] . '</td><td class="border">' . $results[$i]["chamber"] . '</td><td class="border">' . $detailsLink . '</td></tr>';
+            $table = $table. $newRow;
+        }
+        $table = $table . '</table></div>';
+        return $table;
+    }
+    function getBillsDetails($results) {
+        $head = '<table class="border" width="70%" align="center">';
+        $id = '<tr><td align="left" style="padding-left:150px;padding-top:40px;">Bill ID</td><td align="left" style="padding-top:40px;">' . $results["bill_id"] . '</td></tr>';
+        $title = '<tr><td align="left" style="padding-left:150px;">Bill Title</td><td align="left" >' . $results["short_title"] . '</td></tr>';
+        $sponsor = '<tr><td align="left" style="padding-left:150px;">Sponsor</td><td align="left" >' . $results["sponsor"]["title"]. ' ' . $results["sponsor"]["first_name"] . ' ' . $results["sponsor"]["last_name"] . '</td></tr>';
+        $intro = '<tr><td align="left" style="padding-left:150px;">Introduced On</td><td align="left" >' . $results["introduced_on"] . '</td></tr>';
+        $date = '<tr><td align="left" style="padding-left:150px;">Last action with date</td><td align="left" >' . $results["last_version"]["version_name"]. ', ' . $results["last_action_at"] . '</td></tr>';
+        $url = '<tr><td align="left" style="padding-left:150px;padding-bottom:40px;">Bill URL</td><td align="left" style="padding-bottom:40px;"><a target="_blank" href="' . $results["last_version"]["urls"]["pdf"] . '">' . $results["short_title"] . '</a></td><tr>';
+        $table = $head . $id . $title . $sponsor . $intro . $date . $url . '</table>';
+        return $table;
+    }
+    function getCommitteesTable($results, $keyword, $length, $contex) {
+        $chamber = "chamber=" . strtolower($_POST["chamber"]);
+        $apikey = "apikey=c8e8d23822424300b4043bb3ad752f57";
+        $url = "http://congress.api.sunlightfoundation.com/";
+        $database = "committees";
+        $table = '<div id="display"><table class="border" align="center" width="70%"><tr class="border"><th>Committee ID</th><th class="border">Committee Name</th><th class="border">Chamber</th></tr>';
+        for ($i = 0; $i < $length; $i++) {
+            if (count($results[$i]) == 0) {
+                break;
+            }
+            $newRow = '<tr class="border"><td class="border">'.$results[$i]["committee_id"] . '</td><td class="border">' . $results[$i]["name"] . '</td><td class="border">' . $results[$i]["chamber"] . '</td></tr>';
+            $table = $table. $newRow;
+        }
+        $table = $table . '</table></div>';
+        return $table;
+    }
+    function getLesgislatorsTable($results, $keyword, $length, $contex) {
+        $chamber = "chamber=" . strtolower($_POST["chamber"]);
+        $apikey = "apikey=c8e8d23822424300b4043bb3ad752f57";
+        $url = "http://congress.api.sunlightfoundation.com/";
+        $database = "legislators";
         $table = '<div id="display"><table class="border" align="center" width="70%"><tr class="border"><th>Name</th><th class="border">State</th><th class="border">Chamber</th><th class="border">Details</th></tr>';
-        for ($i = 0; $i < $decode["count"]; $i++) {
+        for ($i = 0; $i < $length; $i++) {
             if (count($results[$i]) == 0) {
                 break;
             }
@@ -188,7 +258,6 @@ fieldset {
             $details = file_get_contents($link, false, $context);
             $detailsDecode = json_decode($details, true);
             $GLOBALS[$i] = getDetailsTable($detailsDecode);
-            //$GLOBALS[$i] = '<table class="border" width="70%" align="center"><tr><td>Name</td><td>Gender</td></tr></table>';
             $detailsTable = '<div id="details' . $i . '" style="display:none;">' . $GLOBALS[$i] . '</div>';
             echo $detailsTable;
             $detailsLink = '<a href="javascript:displayDetails(' . $i . ');">View Details</a>';
@@ -196,12 +265,9 @@ fieldset {
             $table = $table. $newRow;
         }
         $table = $table . '</table></div>';
-        echo $table;
-        //var_dump($decode["count"]);
-        $_POST["submit"] = null;
+        return $table;
     }
     function getDetailsTable($decode) {
-        //var_dump($decode["results"]);
         $results = $decode["results"][0];
         $head = '<table class="border" width="70%" align="center">';
         $img = '<tr><td  align="center"colspan="2"><img style="padding-top:20px; padding-bottom:20px;" align="center" src="https://theunitedstates.io/images/congress/225x275/' . $results["bioguide_id"]. '.jpg"></td></tr>';
