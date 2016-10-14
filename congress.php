@@ -222,6 +222,10 @@ fieldset {
             if (count($results[$i]) == 0) {
                 break;
             }
+            if ($results[$i]["amendment_id"] == null) $results[$i]["amendment_id"] = "NA";
+            if ($results[$i]["amendment_type"] == null) $results[$i]["amendment_type"] = "NA";
+            if ($results[$i]["chamber"] == null) $results[$i]["chamber"] = "NA";
+            if ($results[$i]["introduced_on"] == null) $results[$i]["introduced_on"] = "NA";
             $newRow = '<tr class="border"><td class="border">'.$results[$i]["amendment_id"] . '</td><td class="border">' . $results[$i]["amendment_type"] . '</td><td class="border">' . $results[$i]["chamber"] . '</td><td class="border">' . $results[$i]["introduced_on"] . '</td></tr>';
             $table = $table. $newRow;
         }
@@ -242,6 +246,9 @@ fieldset {
             $GLOBALS[$i] = getBillsDetails($results[$i]);
             $detailsTable = '<div id="bills' . $i . '" style="display:none;">' . $GLOBALS[$i] . '</div>';
             echo $detailsTable;
+            if ($results[$i]["bill_id"] == null) $results[$i]["bill_id"] = "NA";
+            if ($results[$i]["short_title"] == null) $results[$i]["short_title"] = "NA";
+            if ($results[$i]["chamber"] == null) $results[$i]["chamber"] = "NA";
             $newRow = '<tr class="border"><td class="border">'.$results[$i]["bill_id"] . '</td><td class="border">' . $results[$i]["short_title"] . '</td><td class="border">' . $results[$i]["chamber"] . '</td><td class="border">' . $detailsLink . '</td></tr>';
             $table = $table. $newRow;
         }
@@ -250,12 +257,29 @@ fieldset {
     }
     function getBillsDetails($results) {
         $head = '<table class="border" width="60%" align="center">';
+        if ($results["bill_id"] == null) $results["bill_id"] = "NA";
         $id = '<tr><td align="left" style="padding-left:150px;padding-top:40px;">Bill ID</td><td align="left" style="padding-top:40px;">' . $results["bill_id"] . '</td></tr>';
+        if ($results["short_title"] == null) $results["short_title"] = "NA";
         $title = '<tr><td align="left" style="padding-left:150px;">Bill Title</td><td align="left" >' . $results["short_title"] . '</td></tr>';
-        $sponsor = '<tr><td align="left" style="padding-left:150px;">Sponsor</td><td align="left" >' . $results["sponsor"]["title"]. ' ' . $results["sponsor"]["first_name"] . ' ' . $results["sponsor"]["last_name"] . '</td></tr>';
+        if ($results["sponsor"] != null && $results["sponsor"]["title"] != null) { 
+            $sponsor = '<tr><td align="left" style="padding-left:150px;">Sponsor</td><td align="left" >' . $results["sponsor"]["title"]. ' ' . $results["sponsor"]["first_name"] . ' ' . $results["sponsor"]["last_name"] . '</td></tr>';
+        } else {
+            $sponsor = '<tr><td align="left" style="padding-left:150px;">Sponsor</td><td align="left" >NA</td></tr>';
+        }
+        if ($results["introduced_on"] == null) $results["introduced_on"] = "NA";
         $intro = '<tr><td align="left" style="padding-left:150px;">Introduced On</td><td align="left" >' . $results["introduced_on"] . '</td></tr>';
-        $date = '<tr><td align="left" style="padding-left:150px;">Last action with date</td><td align="left" >' . $results["last_version"]["version_name"]. ', ' . $results["last_action_at"] . '</td></tr>';
-        $url = '<tr><td align="left" style="padding-left:150px;padding-bottom:40px;">Bill URL</td><td align="left" style="padding-bottom:40px;"><a target="_blank" href="' . $results["last_version"]["urls"]["pdf"] . '">' . $results["short_title"] . '</a></td><tr>';
+        if ($results["last_version"] != null && $results["last_version"]["version_name"] != null && $results["last_action_at"] != null) {
+            $date = '<tr><td align="left" style="padding-left:150px;">Last action with date</td><td align="left" >' . $results["last_version"]["version_name"]. ', ' . $results["last_action_at"] . '</td></tr>';
+        } else {
+            $date = '<tr><td align="left" style="padding-left:150px;">Last action with date</td><td align="left" >NA</td></tr>';
+        }
+        if ($results["last_version"] == null || $results["last_version"]["urls"] == null || $results["last_version"]["urls"]["pdf"] == null) {
+            $url = '<tr><td align="left" style="padding-left:150px;padding-bottom:40px;">Bill URL</td><td align="left" style="padding-bottom:40px;">NA</td><tr>';
+        } else if ($results["short_title"] == "NA") {
+            $url = '<tr><td align="left" style="padding-left:150px;padding-bottom:40px;">Bill URL</td><td align="left" style="padding-bottom:40px;"><a target="_blank" href="' . $results["last_version"]["urls"]["pdf"] . '">' . $results["bill_id"] . '</a></td><tr>';
+        } else {
+            $url = '<tr><td align="left" style="padding-left:150px;padding-bottom:40px;">Bill URL</td><td align="left" style="padding-bottom:40px;"><a target="_blank" href="' . $results["last_version"]["urls"]["pdf"] . '">' . $results["short_title"] . '</a></td><tr>';
+        }
         $table = $head . $id . $title . $sponsor . $intro . $date . $url . '</table>';
         return $table;
     }
@@ -269,6 +293,9 @@ fieldset {
             if (count($results[$i]) == 0) {
                 break;
             }
+            if ($results[$i]["committee_id"] == null) $results[$i]["committee_id"] = "NA";
+            if ($results[$i]["name"] == null) $results[$i]["name"] = "NA";
+            if ($results[$i]["chamber"] == null) $results[$i]["chamber"] = "NA";
             $newRow = '<tr class="border"><td class="border">'.$results[$i]["committee_id"] . '</td><td class="border">' . $results[$i]["name"] . '</td><td class="border">' . $results[$i]["chamber"] . '</td></tr>';
             $table = $table. $newRow;
         }
@@ -293,6 +320,10 @@ fieldset {
             $detailsTable = '<div id="details' . $i . '" style="display:none;">' . $GLOBALS[$i] . '</div>';
             echo $detailsTable;
             $detailsLink = '<a href="javascript:displayDetails(' . $i . ');">View Details</a>';
+            if ($results[$i]["first_name"] == null) $results[$i]["first_name"] = "NA";
+            if ($results[$i]["last_name"] == null) $results[$i]["last_name"] = "NA";
+            if ($results[$i]["state_name"] == null) $results[$i]["state_name"] = "NA";
+            if ($results[$i]["chamber"] == null) $results[$i]["chamber"] = "NA";
             $newRow = '<tr class="border"><td align="left" style="padding-left:40px;">'.$results[$i]["first_name"] . ' ' . $results[$i]["last_name"] . '</td><td class="border" style="padding-left:40px;padding-right:40px;">' . $results[$i]["state_name"] . '</td><td style="padding-left:40px;padding-right:40px;" class="border">' . $results[$i]["chamber"] . '</td><td style="padding-left:40px;padding-right:40px;"class="border">' . $detailsLink . '</td></tr>';
             $table = $table. $newRow;
         }
@@ -304,11 +335,31 @@ fieldset {
         $head = '<table class="border" width="70%" align="center">';
         $img = '<tr><td  align="center"colspan="2"><img style="padding-top:20px; padding-bottom:20px;" align="center" src="https://theunitedstates.io/images/congress/225x275/' . $results["bioguide_id"]. '.jpg"></td></tr>';
         $name = '<tr><td align="left" style="padding-left:250px;">Full Name</td><td align="left">' . $results["title"] . ' ' . $results["first_name"] . ' ' . $results["last_name"] . '</td></tr>';
-        $term = '<tr><td align="left" style="padding-left:250px;">Term Ends On</td><td align="left" >' . $results["term_end"] . '</td></tr>';
-        $website = '<tr><td align="left" style="padding-left:250px;">Website</td><td align="left" ><a target="_blank" href="' . $results["website"] . '">' . $results["website"] . '</a></td></tr>';
-        $office = '<tr><td align="left" style="padding-left:250px;">Office</td><td align="left" >' . $results["office"]. '</td></tr>';
-        $facebook = '<tr><td align="left" style="padding-left:250px;">Facebook</td><td align="left" ><a target="_blank" href="https://www.facebook.com/' . $results["facebook_id"] . '">' . $results["first_name"] . ' ' . $results["last_name"]. '</a></td><tr>';
-        $twitter = '<tr><td align="left" style="padding-bottom:20px;padding-left:250px;">Twitter</td><td style="padding-bottom:20px;" align="left" ><a target="_blank" href="https://twitter.com/' . $results["twitter_id"] . '">' . $results["first_name"] . ' ' . $results["last_name"]. '</a></td><tr>';
+        if ($results["term_end"] != null) {
+            $term = '<tr><td align="left" style="padding-left:250px;">Term Ends On</td><td align="left" >' . $results["term_end"] . '</td></tr>';
+        } else {
+            $term = '<tr><td align="left" style="padding-left:250px;">Term Ends On</td><td align="left" >NA</td></tr>';
+        }
+        if ($results["website"] != null) {
+            $website = '<tr><td align="left" style="padding-left:250px;">Website</td><td align="left" ><a target="_blank" href="' . $results["website"] . '">' . $results["website"] . '</a></td></tr>';
+        } else {
+            $website = '<tr><td align="left" style="padding-left:250px;">Website</td><td align="left" >NA</td></tr>';
+        }
+        if ($results["office"] != null) {
+            $office = '<tr><td align="left" style="padding-left:250px;">Office</td><td align="left" >' . $results["office"]. '</td></tr>';
+        } else {
+            $office = '<tr><td align="left" style="padding-left:250px;">Office</td><td align="left" >NA</td></tr>';
+        }
+        if ($results["facebook_id"] != null) {
+            $facebook = '<tr><td align="left" style="padding-left:250px;">Facebook</td><td align="left" ><a target="_blank" href="https://www.facebook.com/' . $results["facebook_id"] . '">' . $results["first_name"] . ' ' . $results["last_name"]. '</a></td><tr>';
+        } else {
+            $facebook = '<tr><td align="left" style="padding-left:250px;">Facebook</td><td align="left" >NA</td><tr>';
+        }
+        if ($results["twitter_id"] != null) {
+            $twitter = '<tr><td align="left" style="padding-bottom:20px;padding-left:250px;">Twitter</td><td style="padding-bottom:20px;" align="left" ><a target="_blank" href="https://twitter.com/' . $results["twitter_id"] . '">' . $results["first_name"] . ' ' . $results["last_name"]. '</a></td><tr>';
+        } else {
+            $twitter = '<tr><td align="left" style="padding-left:250px;">Twitter</td><td align="left" >NA</td><tr>';
+        }
         $table = $head . $img . $name . $term . $website . $office . $facebook . $twitter . '</table>';
         return $table;
     }
