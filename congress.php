@@ -180,6 +180,9 @@ fieldset {
         $results = $decode["results"];
         $table = '<div id="display"><table class="border" align="center" width="70%"><tr class="border"><th>Name</th><th class="border">State</th><th class="border">Chamber</th><th class="border">Details</th></tr>';
         for ($i = 0; $i < $decode["count"]; $i++) {
+            if (count($results[$i]) == 0) {
+                break;
+            }
             $id = "bioguide_id=" . $results[$i]["bioguide_id"];
             $link = $url . $database . "?" . $chamber . "&" . $keyword . "&" . $id . "&" . $apikey;
             $details = file_get_contents($link, false, $context);
