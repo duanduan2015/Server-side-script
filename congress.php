@@ -41,11 +41,10 @@
                 display.removeChild(display.firstChild);
         }
         document.getElementById("database").selectedIndex = 0;
-        document.getElementById("senate").checked = false;
+        document.getElementById("senate").checked = true;
         document.getElementById("house").checked = false;
         document.getElementById("keywordName").innerHTML = "Keyword*";
         document.getElementById("keyword").value = "";
-        //clear dynamic generated divs
     }
     function checkForm() {
         var db = document.getElementById("database");
@@ -122,7 +121,7 @@ fieldset {
 <tr>
 <td align="center">Chamber</td>
 <td align="center">
-<input id="senate" type="radio" name="chamber" value="Senate" <?php if($cb != null && $cb == "Senate") echo "checked";?>>Senate</input>
+<input id="senate" type="radio" name="chamber" value="Senate" <?php if($cb != "House") echo "checked";?>>Senate</input>
 <input id="house" type="radio" name="chamber" value="House" <?php if($cb != null && $cb == "House") echo "checked";?>>House</input>
 </td></tr>
 <tr>
@@ -130,7 +129,7 @@ fieldset {
 <td align="center"><input id="keyword" type="text" name="keyword" value="<?php if($kw != null) echo $kw;?>"></td></tr>
 <tr>
 <td></td>
-<td>
+<td align="center">
 <input type="submit" name="submit" value="Search">
 <button type="button" name="clear" onclick="clearForm()")>Clear</button>
 </td>
@@ -156,19 +155,33 @@ fieldset {
         if ($database == "legislators") {
             $keywordName = "state";
             $states = getStatesTable();
-            $keyword = $states[$keyword];
-            if ($keyword == null) {
+            $uppercase = strtoupper($keyword);
+            $search = $states[$uppercase];
+            if ($search == null) {
                 $keyword = $_POST["keyword"];
-                $keywordName = "query";
+                $names = explode(" ", $keyword);
+                if (count($names) == 1) {
+                    $keywordName = "query";
+                    $keyword = $keywordName . "=" . $keyword;
+                } else if (count($names) == 2) {
+                    $keyword = 'first_name=' . $names[0] . '&' . 'last_name=' . $names[1];
+                } else if (count($names) == 3) {
+                    $keyword = 'first_name=' . $names[0] . '&' . 'middle_name=' . $names[1] . '&' . 'last_name=' . $names[2];
+                }
+            } else {
+                $keyword = $keywordName . "=" . $search;
             }
         } else if ($database == "committees") {
             $keywordName = "committee_id";
+            $keyword = strtoupper($keyword);
+            $keyword = $keywordName . "=" . $keyword;
         } else if ($database == "bills") {
             $keywordName = "bill_id";
+            $keyword = $keywordName . "=" . $keyword;
         } else if ($database == "amendments") {
             $keywordName = "amendment_id";
+            $keyword = $keywordName . "=" . $keyword;
         }
-        $keyword = $keywordName . "=" . $keyword;
         $url = "http://congress.api.sunlightfoundation.com/";
         $opts = array(
             'https'=>array(
@@ -182,7 +195,7 @@ fieldset {
         $decode = json_decode($file, true);
         if ($decode["count"] == 0) {
             $message = "The API returned zero results for the request.";
-            echo '<div id="display" align="center"><h2>' . $message . '</h2></div>';
+            echo '<div id="display" align="center" style="margin-top:100px;"><h2>' . $message . '</h2></div>';
         } else {
             $results = $decode["results"];
             $table = null;
@@ -204,7 +217,7 @@ fieldset {
         $apikey = "apikey=c8e8d23822424300b4043bb3ad752f57";
         $url = "http://congress.api.sunlightfoundation.com/";
         $database = "amendments";
-        $table = '<div id="display"><table class="border" align="center" width="70%"><tr class="border"><th>Amendment ID</th><th class="border">Amendment Type</th><th class="border">Chamber</th><th class="border">Introduce on</th></tr>';
+        $table = '<div id="display"><table class="border" align="center" width="60%"><tr class="border"><th>Amendment ID</th><th class="border">Amendment Type</th><th class="border">Chamber</th><th class="border">Introduce on</th></tr>';
         for ($i = 0; $i < $length; $i++) {
             if (count($results[$i]) == 0) {
                 break;
@@ -220,7 +233,7 @@ fieldset {
         $apikey = "apikey=c8e8d23822424300b4043bb3ad752f57";
         $url = "http://congress.api.sunlightfoundation.com/";
         $database = "bills";
-        $table = '<div id="display"><table class="border" align="center" width="70%"><tr class="border"><th>Bill ID</th><th class="border">Short Title</th><th class="border">Chamber</th><th class="border">Details</th></tr>';
+        $table = '<div id="display"><table class="border" align="center" width="60%"><tr class="border"><th>Bill ID</th><th class="border">Short Title</th><th class="border">Chamber</th><th class="border">Details</th></tr>';
         for ($i = 0; $i < $length; $i++) {
             if (count($results[$i]) == 0) {
                 break;
@@ -236,7 +249,7 @@ fieldset {
         return $table;
     }
     function getBillsDetails($results) {
-        $head = '<table class="border" width="70%" align="center">';
+        $head = '<table class="border" width="60%" align="center">';
         $id = '<tr><td align="left" style="padding-left:150px;padding-top:40px;">Bill ID</td><td align="left" style="padding-top:40px;">' . $results["bill_id"] . '</td></tr>';
         $title = '<tr><td align="left" style="padding-left:150px;">Bill Title</td><td align="left" >' . $results["short_title"] . '</td></tr>';
         $sponsor = '<tr><td align="left" style="padding-left:150px;">Sponsor</td><td align="left" >' . $results["sponsor"]["title"]. ' ' . $results["sponsor"]["first_name"] . ' ' . $results["sponsor"]["last_name"] . '</td></tr>';
@@ -251,7 +264,7 @@ fieldset {
         $apikey = "apikey=c8e8d23822424300b4043bb3ad752f57";
         $url = "http://congress.api.sunlightfoundation.com/";
         $database = "committees";
-        $table = '<div id="display"><table class="border" align="center" width="70%"><tr class="border"><th>Committee ID</th><th class="border">Committee Name</th><th class="border">Chamber</th></tr>';
+        $table = '<div id="display"><table class="border" align="center" width="60%"><tr class="border"><th>Committee ID</th><th class="border">Committee Name</th><th class="border">Chamber</th></tr>';
         for ($i = 0; $i < $length; $i++) {
             if (count($results[$i]) == 0) {
                 break;
@@ -267,7 +280,7 @@ fieldset {
         $apikey = "apikey=c8e8d23822424300b4043bb3ad752f57";
         $url = "http://congress.api.sunlightfoundation.com/";
         $database = "legislators";
-        $table = '<div id="display"><table class="border" align="center" width="70%"><tr class="border"><th>Name</th><th class="border">State</th><th class="border">Chamber</th><th class="border">Details</th></tr>';
+        $table = '<div id="display"><table class="border" align="center" width="60%"><tr class="border"><th>Name</th><th class="border">State</th><th class="border">Chamber</th><th class="border">Details</th></tr>';
         for ($i = 0; $i < $length; $i++) {
             if (count($results[$i]) == 0) {
                 break;
@@ -280,7 +293,7 @@ fieldset {
             $detailsTable = '<div id="details' . $i . '" style="display:none;">' . $GLOBALS[$i] . '</div>';
             echo $detailsTable;
             $detailsLink = '<a href="javascript:displayDetails(' . $i . ');">View Details</a>';
-            $newRow = '<tr class="border"><td  class="border">'.$results[$i]["first_name"] . ' ' . $results[$i]["last_name"] . '</td><td class="border">' . $results[$i]["state_name"] . '</td><td  class="border">' . $results[$i]["chamber"] . '</td><td class="border">' . $detailsLink . '</td></tr>';
+            $newRow = '<tr class="border"><td align="left" style="padding-left:40px;">'.$results[$i]["first_name"] . ' ' . $results[$i]["last_name"] . '</td><td class="border" style="padding-left:40px;padding-right:40px;">' . $results[$i]["state_name"] . '</td><td style="padding-left:40px;padding-right:40px;" class="border">' . $results[$i]["chamber"] . '</td><td style="padding-left:40px;padding-right:40px;"class="border">' . $detailsLink . '</td></tr>';
             $table = $table. $newRow;
         }
         $table = $table . '</table></div>';
@@ -290,7 +303,7 @@ fieldset {
         $results = $decode["results"][0];
         $head = '<table class="border" width="70%" align="center">';
         $img = '<tr><td  align="center"colspan="2"><img style="padding-top:20px; padding-bottom:20px;" align="center" src="https://theunitedstates.io/images/congress/225x275/' . $results["bioguide_id"]. '.jpg"></td></tr>';
-        $name = '<tr><td align="left" style="padding-left:250px;">Full Name</td><td align="left">' . $results["first_name"] . ' ' . $results["last_name"] . '</td></tr>';
+        $name = '<tr><td align="left" style="padding-left:250px;">Full Name</td><td align="left">' . $results["title"] . ' ' . $results["first_name"] . ' ' . $results["last_name"] . '</td></tr>';
         $term = '<tr><td align="left" style="padding-left:250px;">Term Ends On</td><td align="left" >' . $results["term_end"] . '</td></tr>';
         $website = '<tr><td align="left" style="padding-left:250px;">Website</td><td align="left" ><a target="_blank" href="' . $results["website"] . '">' . $results["website"] . '</a></td></tr>';
         $office = '<tr><td align="left" style="padding-left:250px;">Office</td><td align="left" >' . $results["office"]. '</td></tr>';
@@ -301,56 +314,56 @@ fieldset {
     }
     function getStatesTable() {
         $states = array(
-            "Alabama"=>"AL",
-            "Alaska"=>"AK",
-            "Arizona"=>"AZ",
-            "Arkansas"=>"AR",
-            "California"=>"CA",
-            "Colorado"=>"CO",
-            "Connecticut"=>"CT",
-            "Delaware"=>"DE",
-            "Florida"=>"FL",
-            "Georgia"=>"GA",
-            "Hawaii"=>"HI",
-            "Idaho"=>"ID",
-            "Illinois"=>"IL",
-            "Indiana"=>"IN",
-            "Iowa"=>"IA",
-            "Kansas"=>"KS",
-            "Kentucky"=>"KY",
-            "Louisiana"=>"LA",
-            "Maine"=>"ME",
-            "Maryland"=>"MD",
-            "Massachusetts"=>"MA",
-            "Michigan"=>"MI",
-            "Minnesota"=>"MN",
-            "Mississippi"=>"MS",
-            "Missouri"=>"MO",
-            "Montana"=>"MT",
-            "Nebraska"=>"NE",
-            "Nevada"=>"NV",
-            "New Hampshire"=>"NH",
-            "New Jersey"=>"NJ",
-            "New Mexico"=>"NM",
-            "New York"=>"NY",
-            "North Carolina"=>"NC",
-            "North Dakota"=>"ND",
-            "Ohio"=>"OH",
-            "Oklahoma"=>"OK",
-            "Oregon"=>"OR",
-            "Pennsylvania"=>"PA",
-            "Rhode Island"=>"RI",
-            "South Carolina"=>"SC",
-            "South Dakota"=>"SD",
-            "Tennessee"=>"TN",
-            "Texas"=>"TX",
-            "Utah"=>"UT",
-            "Vermont"=>"VT",
-            "Virginia"=>"VA",
-            "Washington"=>"WA",
-            "West Virginia"=>"WV",
-            "Wisconsin"=>"WI",
-            "Wyoming"=>"WY",
+            strtoupper("Alabama")=>"AL",
+            strtoupper("Alaska")=>"AK",
+            strtoupper("Arizona")=>"AZ",
+            strtoupper("Arkansas")=>"AR",
+            strtoupper("California")=>"CA",
+            strtoupper("Colorado")=>"CO",
+            strtoupper("Connecticut")=>"CT",
+            strtoupper("Delaware")=>"DE",
+            strtoupper("Florida")=>"FL",
+            strtoupper("Georgia")=>"GA",
+            strtoupper("Hawaii")=>"HI",
+            strtoupper("Idaho")=>"ID",
+            strtoupper("Illinois")=>"IL",
+            strtoupper("Indiana")=>"IN",
+            strtoupper("Iowa")=>"IA",
+            strtoupper("Kansas")=>"KS",
+            strtoupper("Kentucky")=>"KY",
+            strtoupper("Louisiana")=>"LA",
+            strtoupper("Maine")=>"ME",
+            strtoupper("Maryland")=>"MD",
+            strtoupper("Massachusetts")=>"MA",
+            strtoupper("Michigan")=>"MI",
+            strtoupper("Minnesota")=>"MN",
+            strtoupper("Mississippi")=>"MS",
+            strtoupper("Missouri")=>"MO",
+            strtoupper("Montana")=>"MT",
+            strtoupper("Nebraska")=>"NE",
+            strtoupper("Nevada")=>"NV",
+            strtoupper("New Hampshire")=>"NH",
+            strtoupper("New Jersey")=>"NJ",
+            strtoupper("New Mexico")=>"NM",
+            strtoupper("New York")=>"NY",
+            strtoupper("North Carolina")=>"NC",
+            strtoupper("North Dakota")=>"ND",
+            strtoupper("Ohio")=>"OH",
+            strtoupper("Oklahoma")=>"OK",
+            strtoupper("Oregon")=>"OR",
+            strtoupper("Pennsylvania")=>"PA",
+            strtoupper("Rhode Island")=>"RI",
+            strtoupper("South Carolina")=>"SC",
+            strtoupper("South Dakota")=>"SD",
+            strtoupper("Tennessee")=>"TN",
+            strtoupper("Texas")=>"TX",
+            strtoupper("Utah")=>"UT",
+            strtoupper("Vermont")=>"VT",
+            strtoupper("Virginia")=>"VA",
+            strtoupper("Washington")=>"WA",
+            strtoupper("West Virginia")=>"WV",
+            strtoupper("Wisconsin")=>"WI",
+            strtoupper("Wyoming")=>"WY",
         );
         return $states;
     }
