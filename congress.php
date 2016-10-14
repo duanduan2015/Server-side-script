@@ -100,6 +100,7 @@ fieldset {
     border: 2px solid black;
     border-collapse: collapse;
     text-align: center;
+    margin-top:30px;
 }
 </style>
 </head>
@@ -186,15 +187,33 @@ fieldset {
             $results = $decode["results"];
             $table = null;
             if ($database == "legislators") {
-                $table = getLesgislatorsTable($results, $keyword, count($decode), $contex); 
+                $table = getLesgislatorsTable($results, $keyword, $decode["count"], $contex); 
             } else if ($database == "committees") {
-                $table = getCommitteesTable($results, $keyword, count($decode), $contex);
+                $table = getCommitteesTable($results, $keyword, $decode["count"], $contex);
             } else if ($database == "bills") {
-                $table = getBillsTable($results, $keyword, count($decode), $contex);
+                $table = getBillsTable($results, $keyword, $decode["count"], $contex);
+            } else if ($database == "amendments") {
+                $table = getAmendmentsTable($results, $keyword, $decode["count"], $contex);
             }
             echo $table;
         }
         $_POST["submit"] = null;
+    }
+    function getAmendmentsTable($results, $keyword, $length, $contex) {
+        $chamber = "chamber=" . strtolower($_POST["chamber"]);
+        $apikey = "apikey=c8e8d23822424300b4043bb3ad752f57";
+        $url = "http://congress.api.sunlightfoundation.com/";
+        $database = "amendments";
+        $table = '<div id="display"><table class="border" align="center" width="70%"><tr class="border"><th>Amendment ID</th><th class="border">Amendment Type</th><th class="border">Chamber</th><th class="border">Introduce on</th></tr>';
+        for ($i = 0; $i < $length; $i++) {
+            if (count($results[$i]) == 0) {
+                break;
+            }
+            $newRow = '<tr class="border"><td class="border">'.$results[$i]["amendment_id"] . '</td><td class="border">' . $results[$i]["amendment_type"] . '</td><td class="border">' . $results[$i]["chamber"] . '</td><td class="border">' . $results[$i]["introduced_on"] . '</td></tr>';
+            $table = $table. $newRow;
+        }
+        $table = $table . '</table></div>';
+        return $table;
     }
     function getBillsTable($results, $keyword, $length, $contex) {
         $chamber = "chamber=" . strtolower($_POST["chamber"]);
