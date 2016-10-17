@@ -155,11 +155,12 @@ fieldset {
         if ($database == "legislators") {
             $keywordName = "state";
             $states = getStatesTable();
-            $uppercase = strtoupper($keyword);
+            $uppercase = strtoupper(trim($keyword));
             $search = $states[$uppercase];
             if ($search == null) {
-                $keyword = $_POST["keyword"];
-                $names = explode(" ", $keyword);
+                $keyword = trim($_POST["keyword"]);
+                //$names = explode(" ", $keyword);
+                $names = preg_split("/[\s,]+/", $keyword);
                 if (count($names) == 1) {
                     $keywordName = "query";
                     $keyword = $keywordName . "=" . $keyword;
@@ -167,6 +168,11 @@ fieldset {
                     $keyword = 'first_name=' . $names[0] . '&' . 'last_name=' . $names[1];
                 } else if (count($names) == 3) {
                     $keyword = 'first_name=' . $names[0] . '&' . 'middle_name=' . $names[1] . '&' . 'last_name=' . $names[2];
+                } else if (count($name) == 0 || count($name) > 3) {
+                    $message = "The API returned zero results for the request.";
+                    echo '<div id="display" align="center" style="margin-top:100px;"><h2>' . $message . '</h2></div>';
+                    $_POST["submit"] = null;
+                    return;
                 }
             } else {
                 $keyword = $keywordName . "=" . $search;
