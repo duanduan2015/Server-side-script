@@ -179,13 +179,36 @@ fieldset {
             }
         } else if ($database == "committees") {
             $keywordName = "committee_id";
-            $keyword = strtoupper($keyword);
+            $keyword = strtoupper(trim($keyword));
+            $names = preg_split("/[\s,]+/", $keyword);
+            if (count($names) > 1) {
+                $message = "The API returned zero results for the request.";
+                echo '<div id="display" align="center" style="margin-top:100px;"><h2>' . $message . '</h2></div>';
+                $_POST["submit"] = null;
+                return;
+            }
             $keyword = $keywordName . "=" . $keyword;
         } else if ($database == "bills") {
             $keywordName = "bill_id";
+            $keyword = trim($keyword);
+            $names = preg_split("/[\s,]+/", $keyword);
+            if (count($names) > 1) {
+                $message = "The API returned zero results for the request.";
+                echo '<div id="display" align="center" style="margin-top:100px;"><h2>' . $message . '</h2></div>';
+                $_POST["submit"] = null;
+                return;
+            }
             $keyword = $keywordName . "=" . strtolower($keyword);
         } else if ($database == "amendments") {
             $keywordName = "amendment_id";
+            $keyword = trim($keyword);
+            $names = preg_split("/[\s,]+/", $keyword);
+            if (count($names) > 1) {
+                $message = "The API returned zero results for the request.";
+                echo '<div id="display" align="center" style="margin-top:100px;"><h2>' . $message . '</h2></div>';
+                $_POST["submit"] = null;
+                return;
+            }
             $keyword = $keywordName . "=" . strtolower($keyword);
         }
         $url = "http://congress.api.sunlightfoundation.com/";
