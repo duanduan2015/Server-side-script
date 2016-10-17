@@ -177,10 +177,10 @@ fieldset {
             $keyword = $keywordName . "=" . $keyword;
         } else if ($database == "bills") {
             $keywordName = "bill_id";
-            $keyword = $keywordName . "=" . $keyword;
+            $keyword = $keywordName . "=" . strtolower($keyword);
         } else if ($database == "amendments") {
             $keywordName = "amendment_id";
-            $keyword = $keywordName . "=" . $keyword;
+            $keyword = $keywordName . "=" . strtolower($keyword);
         }
         $url = "http://congress.api.sunlightfoundation.com/";
         $opts = array(
@@ -194,22 +194,33 @@ fieldset {
         $file = file_get_contents($filePath, false, $context);
         $decode = json_decode($file, true);
         if ($decode["count"] == 0) {
-            $message = "The API returned zero results for the request.";
-            echo '<div id="display" align="center" style="margin-top:100px;"><h2>' . $message . '</h2></div>';
-        } else {
-            $results = $decode["results"];
-            $table = null;
-            if ($database == "legislators") {
-                $table = getLesgislatorsTable($results, $keyword, $decode["count"], $contex); 
-            } else if ($database == "committees") {
-                $table = getCommitteesTable($results, $keyword, $decode["count"], $contex);
-            } else if ($database == "bills") {
-                $table = getBillsTable($results, $keyword, $decode["count"], $contex);
-            } else if ($database == "amendments") {
-                $table = getAmendmentsTable($results, $keyword, $decode["count"], $contex);
+            if (ctype_lower($keyword)) {
+                $keyword = strtoupper($keyword);
+            } else {
+                $keyword = strtolower($keyword);
             }
-            echo $table;
+            $filePath = $url . $database . "?" . $chamber . "&" . $keyword . "&" . $apikey;
+            $file = file_get_contents($filePath, false, $context);
+            $decode = json_decode($file, true);
+            if ($decode["count"] == 0) {
+                $message = "The API returned zero results for the request.";
+                echo '<div id="display" align="center" style="margin-top:100px;"><h2>' . $message . '</h2></div>';
+                $_POST["submit"] = null;
+                return;
+            }
+        } 
+        $results = $decode["results"];
+        $table = null;
+        if ($database == "legislators") {
+            $table = getLesgislatorsTable($results, $keyword, $decode["count"], $contex); 
+        } else if ($database == "committees") {
+            $table = getCommitteesTable($results, $keyword, $decode["count"], $contex);
+        } else if ($database == "bills") {
+            $table = getBillsTable($results, $keyword, $decode["count"], $contex);
+        } else if ($database == "amendments") {
+            $table = getAmendmentsTable($results, $keyword, $decode["count"], $contex);
         }
+        echo $table;
         $_POST["submit"] = null;
     }
     function getAmendmentsTable($results, $keyword, $length, $contex) {
